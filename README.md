@@ -1,7 +1,9 @@
 Kaggle competition for credit card fraud
 ==============================
 
-kaggle competition for credit card fraud for fun
+kaggle competition for credit card fraud for fun.
+
+Competition source: https://www.kaggle.com/mlg-ulb/creditcardfraud
 
 Project Organization
 ------------
