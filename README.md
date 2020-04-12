@@ -1,4 +1,4 @@
-project_name
+Kaggle competition for credit card fraud
 ==============================
 
 kaggle competition for credit card fraud for fun
