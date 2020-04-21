@@ -1,19 +1,25 @@
 import pandas as pd
 import logging
 
+from numpy import mean
+
 from constants import (
-    random_seed,
     baseline_classifiers,
     LogisiticRegression_grid,
     model_metrics,
-    best_model_file_name
+    best_model_file_name,
+    LogisticRegression_rndm_params
 )
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
-from sklearn.metrics import classification_report
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    f1_score
+)
 from sklearn.model_selection import (
-    GridSearchCV,
-    train_test_split as tts,
+    RandomizedSearchCV,
+    StratifiedKFold,
 )
 from sklearn.externals import joblib
 
@@ -29,42 +35,57 @@ def main():
     X = processed_df.drop('Class', axis=1).values
     y = processed_df['Class'].values
 
-    X_train, X_test, y_train, y_test = tts(X, y, random_state=random_seed)
+    accuracy_lst = []
+    precision_lst = []
+    recall_lst = []
+    f1_lst = []
 
-    logger.info(f'Constructing model pipeline')
-    model = Pipeline(
-        [
-            ('sampling', SMOTE()),
-            ('classification', baseline_classifiers['LogisiticRegression'])
-        ]
+    rand_log_reg = RandomizedSearchCV(
+        baseline_classifiers['LogisticRegression'],
+        LogisticRegression_rndm_params,
+        n_iter=4
     )
 
-    logger.info(f'Constructing baseline model')
-    model.fit(X_train, y_train)
-    baseline_y_hat = model.predict(X_test)
+    skf = StratifiedKFold(n_splits=5, random_state=None, shuffle=False)
 
-    baseline_report = classification_report(y_test, baseline_y_hat)
-    print(f'Classification report for Baseline model \n{baseline_report}')
+    logger.info(f'Constructing model pipeline and cross validating')
+    idx=1
+    for train, test in skf.split(X=X, y=y):
+        logger.info(f'Run {idx}')
+        model = Pipeline(
+            [
+                ('sampling', SMOTE(sampling_strategy='minority')),
+                ('classification', rand_log_reg)
+            ]
+        )
 
-    logger.info(f'Performing Gridsearch')
-    gridsearch_cv = GridSearchCV(
-        estimator=model,
-        param_grid=LogisiticRegression_grid,
-        cv=5,
-        scoring=model_metrics,
-        n_jobs=1,
-        refit='F1',
-        return_train_score=True
-    )
+        model.fit(X[train], y[train])
+        best_estimators = rand_log_reg.best_estimator_
+        prediction = best_estimators.predict(X[test])
 
-    gridsearch_cv.fit(X_train, y_train)
-    print(f'Best score (log-loss): {gridsearch_cv.best_score_}\nBest Parameters: {gridsearch_cv.best_params_}')
-    gridsearch_y_hat = gridsearch_cv.predict(X_test)
-    gridsearch_report = classification_report(y_test, gridsearch_y_hat)
-    print(f'Classification report for tuned model \n{gridsearch_report}')
+        accuracy_lst.append(model.score(X[test], y[test]))
+        precision_lst.append(precision_score(y[test], prediction))
+        recall_lst.append(recall_score(y[test], prediction))
+        f1_lst.append(f1_score(y[test], prediction))
+        idx+=1
 
-    joblib.dump(gridsearch_cv, f'../../models/{best_model_file_name}', compress=9)
+    metrics = f'''
+    Accuracy: {mean(accuracy_lst)} \n
+    Precision: {mean(precision_lst)} \n
+    Recall: {mean(recall_lst)} \n
+    F1: {mean(f1_lst)}
+          '''
+
+    print(metrics)
+
+    f = open(f'../../models/metrics.txt', 'w')
+    f.write(metrics)
+    f.close()
+
+    joblib.dump(rand_log_reg, f'../../models/{best_model_file_name}', compress=9)
     logger.info(f'Serialised model as {best_model_file_name}')
+
+    return rand_log_reg
 
 
 if __name__ == '__main__':
