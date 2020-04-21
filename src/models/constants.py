@@ -7,7 +7,7 @@ random_seed = 1
 best_model_file_name = 'final_model.pkl'
 
 baseline_classifiers = {
-    "LogisticRegression": LogisticRegression(random_state=random_seed, max_iter=200),
+    "LogisticRegression": LogisticRegression(random_state=random_seed, max_iter=250),
     "KNearest": KNeighborsClassifier(),
     "DecisionTreeClassifier": DecisionTreeClassifier(random_state=random_seed)
 }
@@ -16,6 +16,11 @@ LogisiticRegression_grid = {
     "classification__penalty": ['l2'],
     "classification__C": [0.001, 0.01, 0.1, 1],
     "classification__solver": ['lbfgs']
+}
+
+LogisticRegression_rndm_params = {
+    "penalty": ['l2'],
+    'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]
 }
 
 model_metrics = {
