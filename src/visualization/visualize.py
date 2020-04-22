@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import ( make_pipeline)
 from sklearn.model_selection import (
@@ -70,12 +71,19 @@ for classifier in baseline_classifiers.keys():
     mean_tpr = np.mean(tprs, axis=0)
     mean_tpr[-1] = 1.0
     classifier_metrics[classifier] = mean_tpr
-    print(f"Classifier: {classifier}")
-    print(f"accuracy: {np.mean(accs)}")
-    print(f"precision: {np.mean(precision)}")
-    print(f"recall: {np.mean(recall)}")
-    print(f"f1: {np.mean(f1)}")
-    print(f"auc: {np.mean(auc)}\n")
+    metrics = f'''
+    Classifier: {classifier} \n
+    accuracy: {np.mean(accs)} \n
+    precision: {np.mean(precision)} \n
+    recall: {np.mean(recall)} \n
+    f1: {np.mean(f1)} \n
+    auc: {np.mean(auc)}\n\n
+    '''
+    print(f"{metrics}")
+    f = open(f'../../reports/{classifier}_baseline_result.txt', 'w')
+    f.write(metrics)
+    f.close()
+
 
 fig = go.Figure()
 baseline_trace = go.Scatter(x=mean_fpr,y=mean_fpr,name='Baseline')
