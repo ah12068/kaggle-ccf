@@ -1,0 +1,15 @@
+
+    Classifier: DecisionTreeClassifier 
+
+    accuracy: 0.8252062347826474 
+
+    precision: 0.15752333862101706 
+
+    recall: 0.5500515357658214 
+
+    f1: 0.22303997830855984 
+
+    auc: 0.6878653999811117
+
+
+    
