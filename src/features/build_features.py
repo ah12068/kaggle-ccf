@@ -18,7 +18,7 @@ def main():
 
     raw_df.sample(frac=1, replace=False, random_state=0, axis=0)
 
-    raw_df.to_csv(f'../../data/processed/processed.csv')
+    raw_df.to_csv(f'../../data/processed/processed.csv', index=False)
 
     logger.info(f'Features built. \n Features: {raw_df.columns}')
 
